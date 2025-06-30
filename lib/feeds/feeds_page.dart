@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get/get.dart';
 import 'feed_post_card.dart';
+import '../auth/auth_controller.dart'; // <-- Import your AuthController
 
 class FeedsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final authController = Get.find<AuthController>(); // <-- Get the controller
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('feeds')
@@ -27,7 +31,9 @@ class FeedsPage extends StatelessWidget {
               name: post['name'] ?? '',
               upi: post['upi'] ?? '',
               message: post['message'] ?? '',
-              amount: 0, // You can add amount field if needed
+              amount: 0,
+              toUserId: post['email'] ?? '',
+              fromUserId: authController.userEmail.value, // <-- Use current user's email as ID
             );
           },
         );

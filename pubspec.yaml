@@ -42,6 +42,9 @@ dependencies:
   firebase_auth: ^5.6.0
   cloud_firestore: ^5.6.9
   upi_india: ^3.0.1
+  razorpay_flutter: ^1.4.0
+  lottie: ^3.3.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +67,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/animations/success.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:
