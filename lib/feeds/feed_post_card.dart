@@ -85,6 +85,11 @@ class _FeedPostCardState extends State<FeedPostCard> {
       'paymentId': response.paymentId,
     });
 
+    await FirebaseFirestore.instance
+  .collection('users')
+  .doc(widget.toUserId)
+  .update({'totalBheekReceived': FieldValue.increment(_lastPaidAmount)});
+
    // Get.snackbar('Success', 'Payment successful! Payment ID: ${response.paymentId}');
   }
 
@@ -170,31 +175,49 @@ class _FeedPostCardState extends State<FeedPostCard> {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.only(bottom: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      elevation: 6,
+      color: Colors.blue.shade50,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: Icon(Icons.person, color: Colors.white),
-              ),
-              title: Text(widget.name, style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('UPI: ${widget.upi}'),
-            ),
-            SizedBox(height: 12),
-            Text(
-              widget.message,
-              style: TextStyle(fontSize: 16),
-            ),
-            
-            SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.blue.shade200,
+                  child: Text(
+                    '🤲',
+                    style: TextStyle(fontSize: 28),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Mujhe bheek chahiye!',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blueGrey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Obx(() => Row(
                       children: [
                         IconButton(
@@ -203,24 +226,54 @@ class _FeedPostCardState extends State<FeedPostCard> {
                                 ? Icons.favorite
                                 : Icons.favorite_border,
                             color: controller.isLiked.value
-                                ? Colors.red
-                                : Theme.of(context).colorScheme.primary,
+                                ? Colors.pink
+                                : Colors.blueAccent,
+                            size: 28,
                           ),
                           onPressed: controller.toggleLike,
                         ),
-                        Text('${controller.likes.value}'),
+                        Text(
+                          '${controller.likes.value}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
                       ],
                     )),
-                ElevatedButton.icon(
-                  icon: Icon(Icons.currency_rupee),
-                  label: Text('Pay'),
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  ),
-                  onPressed: () => payWithRazorpay(context),
-                ),
               ],
+            ),
+            SizedBox(height: 18),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                widget.message,
+                style: TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+            ),
+            SizedBox(height: 18),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.currency_rupee),
+                label: Text('Bheek Do'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                  textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  elevation: 2,
+                ),
+                onPressed: () => payWithRazorpay(context),
+              ),
             ),
           ],
         ),

@@ -12,7 +12,7 @@ class LeaderboardPage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 24.0),
           child: Text(
-            '🏆 Top 50 Bhikaris',
+            '🏆 Top 20 Bhikaris',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -26,7 +26,7 @@ class LeaderboardPage extends StatelessWidget {
             itemCount: controller.leaders.length,
             itemBuilder: (context, index) {
               final leader = controller.leaders[index];
-              final isCurrentUser = leader.name == controller.currentUser;
+              final isCurrentUser = leader.userId == controller.currentUserId.value;
               return Card(
                 color: isCurrentUser
                     ? Theme.of(context).colorScheme.secondary.withOpacity(0.2)
@@ -81,7 +81,9 @@ class LeaderboardPage extends StatelessWidget {
           child: Obx(() {
             final pos = controller.currentUserPosition;
             return Text(
-              'Your Position: $pos',
+              pos > 0
+                  ? 'Aapki Posiiton: $pos'
+                  : 'Aap abhi Top 20 mein nahi ho!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,

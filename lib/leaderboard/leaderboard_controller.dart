@@ -1,29 +1,47 @@
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../auth/auth_controller.dart';
 
 class Leader {
   final String name;
   final int amount; // amount earned in ₹
+  final String userId;
 
-  Leader({required this.name, required this.amount});
+  Leader({required this.name, required this.amount, required this.userId});
 }
 
 class LeaderboardController extends GetxController {
   final leaders = <Leader>[].obs;
-  final String currentUser = 'You';
+  final currentUserId = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Dummy data for top 50
-    leaders.value = List.generate(
-      50,
-      (i) => Leader(
-        name: i == 24 ? currentUser : 'User ${i + 1}',
-        amount: 1000 - i * 10, // Amount in ₹
-      ),
-    );
+    final auth = Get.find<AuthController>();
+    currentUserId.value = auth.userEmail.value; // or use UID if you store that
+    fetchLeaders();
   }
 
-  int get currentUserPosition =>
-      leaders.indexWhere((l) => l.name == currentUser) + 1;
+  void fetchLeaders() async {
+    FirebaseFirestore.instance
+        .collection('users')
+        .orderBy('totalBheekReceived', descending: true)
+        .limit(20)
+        .snapshots()
+        .listen((snapshot) {
+      leaders.value = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Leader(
+          name: data['name'] ?? doc.id,
+          amount: (data['totalBheekReceived'] ?? 0) as int,
+          userId: doc.id, // doc.id is the email
+        );
+      }).toList();
+    });
+  }
+
+  int get currentUserPosition {
+    final idx = leaders.indexWhere((l) => l.userId == currentUserId.value);
+    return idx == -1 ? -1 : idx + 1;
+  }
 }
