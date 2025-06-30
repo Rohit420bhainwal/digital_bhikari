@@ -29,7 +29,7 @@ class LeaderboardController extends GetxController {
         .limit(20)
         .snapshots()
         .listen((snapshot) {
-      leaders.value = snapshot.docs.map((doc) {
+      leaders .value = snapshot.docs.map((doc) {
         final data = doc.data();
         return Leader(
           name: data['name'] ?? doc.id,
