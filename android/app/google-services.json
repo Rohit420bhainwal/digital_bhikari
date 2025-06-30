@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "481649549130",
+    "project_id": "digital-bhikari-firebase",
+    "storage_bucket": "digital-bhikari-firebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:481649549130:android:92900830c2bb0f23402bb3",
+        "android_client_info": {
+          "package_name": "com.digitalbhikari.app.digital_bhikari"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "481649549130-0o2iafjauimitoqsbnk11jgnp5t7kjqq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBym8KkZrWQZND9yxsj1Px3rAl4jbeCqQE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "481649549130-0o2iafjauimitoqsbnk11jgnp5t7kjqq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
