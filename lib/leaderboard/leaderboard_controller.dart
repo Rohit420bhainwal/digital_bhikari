@@ -11,15 +11,17 @@ class Leader {
 }
 
 class LeaderboardController extends GetxController {
-  final leaders = <Leader>[].obs;
+  final leaders = <Leader>[].obs; // Top Bhikhari
+  final donors = <Leader>[].obs;  // Top Donors
   final currentUserId = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
     final auth = Get.find<AuthController>();
-    currentUserId.value = auth.userEmail.value; // or use UID if you store that
+    currentUserId.value = auth.userEmail.value;
     fetchLeaders();
+    fetchDonors();
   }
 
   void fetchLeaders() async {
@@ -29,12 +31,30 @@ class LeaderboardController extends GetxController {
         .limit(20)
         .snapshots()
         .listen((snapshot) {
-      leaders .value = snapshot.docs.map((doc) {
+      leaders.value = snapshot.docs.map((doc) {
         final data = doc.data();
         return Leader(
           name: data['name'] ?? doc.id,
-          amount: (data['totalBheekReceived'] ?? 0) as int,
-          userId: doc.id, // doc.id is the email
+          amount: (data['totalBheekReceived'] ?? 0).toInt(),
+          userId: doc.id,
+        );
+      }).toList();
+    });
+  }
+
+  void fetchDonors() async {
+    FirebaseFirestore.instance
+        .collection('users')
+        .orderBy('totalBheekGiven', descending: true)
+        .limit(20)
+        .snapshots()
+        .listen((snapshot) {
+      donors.value = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Leader(
+          name: data['name'] ?? doc.id,
+          amount: (data['totalBheekGiven'] ?? 0).toInt(),
+          userId: doc.id,
         );
       }).toList();
     });
@@ -42,6 +62,11 @@ class LeaderboardController extends GetxController {
 
   int get currentUserPosition {
     final idx = leaders.indexWhere((l) => l.userId == currentUserId.value);
+    return idx == -1 ? -1 : idx + 1;
+  }
+
+  int get currentUserDonorPosition {
+    final idx = donors.indexWhere((l) => l.userId == currentUserId.value);
     return idx == -1 ? -1 : idx + 1;
   }
 }

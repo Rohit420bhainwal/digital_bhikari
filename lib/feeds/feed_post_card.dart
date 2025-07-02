@@ -90,8 +90,13 @@ class _FeedPostCardState extends State<FeedPostCard> {
   .doc(widget.toUserId)
   .update({'totalBheekReceived': FieldValue.increment(_lastPaidAmount)});
 
+await FirebaseFirestore.instance
+  .collection('users')
+  .doc(widget.fromUserId)
+  .update({'totalBheekGiven': FieldValue.increment(_lastPaidAmount)});
    // Get.snackbar('Success', 'Payment successful! Payment ID: ${response.paymentId}');
   }
+
 
   void _handlePaymentError(PaymentFailureResponse response) {
     Get.snackbar('Failed', 'Payment failed! Reason: ${response.message}');
@@ -141,7 +146,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
     _lastPaidAmount = result; // Store for Firestore
 
     var options = {
-      'key': 'rzp_test_1DP5mmOlF5G5ag',
+      'key': 'rzp_test_icz3AXfa29RYVn',
       'amount': (result * 100).toInt(),
       'name': widget.name,
       'description': widget.message,

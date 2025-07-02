@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'feeds/upi_payment_page.dart';
 import 'splash/splash_screen.dart';
 import 'base/base_screen.dart';
@@ -13,6 +14,7 @@ void main() async {
   await Firebase.initializeApp();
   await GetStorage.init();
   Get.put(AuthController());
+  await MobileAds.instance.initialize();
   runApp(MyApp());
 }
 
@@ -66,7 +68,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
