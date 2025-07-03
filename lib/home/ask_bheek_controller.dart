@@ -1,7 +1,12 @@
 import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../auth/auth_controller.dart';
 
 class AskBheekController extends GetxController {
@@ -9,6 +14,8 @@ class AskBheekController extends GetxController {
   final upiIdController = TextEditingController();
   var hasUpiId = false.obs;
   var funnyMessages = <String>[].obs;
+  var selectedImage = Rxn<File>();
+  var imageUrl = ''.obs;
 
   static final List<String> staticFunnyMessages = [
     "Bhai, lunch ke liye ₹50 bhej de, bhookh lagi hai!",
@@ -100,6 +107,58 @@ class AskBheekController extends GetxController {
     Get.snackbar('Success', 'UPI ID saved!');
   }
 
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (picked != null) {
+      selectedImage.value = File(picked.path);
+    }
+  }
+
+  Future<String?> uploadImage(String userEmail) async {
+    if (selectedImage.value == null) return null;
+    try {
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('feed_images')
+          .child('${userEmail}_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(selectedImage.value!);
+      return await ref.getDownloadURL();
+    } on FirebaseException catch (e) {
+      Get.snackbar('Image Upload Failed', e.message ?? 'Unknown error');
+      return null;
+    } catch (e) {
+      Get.snackbar('Image Upload Failed', e.toString());
+      return null;
+    }
+  }
+
+  Future<String?> uploadImageToCloudinary(File imageFile) async {
+    try {
+      final cloudName = 'djfkguxxc';
+      final uploadPreset = 'digital_bhikari_unsigned'; // Create in Cloudinary dashboard
+
+      final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+      final request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+      final response = await request.send();
+      final resStr = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final data = json.decode(resStr);
+        return data['secure_url'];
+      } else {
+        Get.snackbar('Image Upload Failed', 'Cloudinary error: $resStr');
+        return null;
+      }
+    } catch (e) {
+      Get.snackbar('Image Upload Failed', e.toString());
+      return null;
+    }
+  }
+
   void askBheek() async {
     final message = messageController.text.trim();
     if (message.isEmpty) {
@@ -109,12 +168,22 @@ class AskBheekController extends GetxController {
     final auth = Get.find<AuthController>();
     final upiId = upiIdController.text.trim();
 
-    // Add feed to Firestore
+    String? uploadedImageUrl;
+    if (selectedImage.value != null) {
+      uploadedImageUrl = await uploadImageToCloudinary(selectedImage.value!);
+      if (uploadedImageUrl == null) {
+        // Show error and stop further execution
+        Get.snackbar('Error', 'Image upload failed. Please try again.');
+        return;
+      }
+    }
+
     await FirebaseFirestore.instance.collection('feeds').add({
       'name': auth.userName.value,
       'email': auth.userEmail.value,
       'upi': upiId,
       'message': message,
+      'imageUrl': uploadedImageUrl ?? '',
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -126,6 +195,7 @@ class AskBheekController extends GetxController {
       duration: Duration(seconds: 2),
     );
     messageController.clear();
+    selectedImage.value = null;
   }
 
   Future<void> uploadFunnyMessages() async {

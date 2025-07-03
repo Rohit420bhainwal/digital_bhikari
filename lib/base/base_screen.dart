@@ -5,6 +5,7 @@ import '../home/home_page.dart';
 import '../leaderboard/leaderboard_page.dart';
 import '../transactions/transaction_page.dart';
 import '../auth/auth_controller.dart';
+import '../profile/profile_page.dart';
 
 import 'base_controller.dart';
 
@@ -59,6 +60,14 @@ class BaseScreen extends StatelessWidget {
               onTap: () {
                 controller.changeTabIndex(0);
                 Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+              title: Text('Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                Get.to(() => ProfilePage());
               },
             ),
             ListTile(
