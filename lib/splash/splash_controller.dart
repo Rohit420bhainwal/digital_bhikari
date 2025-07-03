@@ -26,7 +26,8 @@ class SplashController extends GetxController {
   void _loadAd() {
     //ca-app-pub-3940256099942544/1033173712 test id
     InterstitialAd.load(
-      adUnitId: 'ca-app-pub-5357447465713123/4529461813', // Test ID, replace with your own
+      adUnitId: 'ca-app-pub-5357447465713123/4529461813'
+          '', // Test ID, replace with your own
       request: AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) => _interstitialAd = ad,
