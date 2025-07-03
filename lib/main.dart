@@ -1,3 +1,4 @@
+import 'package:digital_bhikari/localization/app_translations.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -25,6 +26,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+        translations: AppTranslations(),
+      locale: Locale('en', 'US'), // default
+      fallbackLocale: Locale('en', 'US'),
       title: 'GetX Splash Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

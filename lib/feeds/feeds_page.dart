@@ -41,7 +41,7 @@ class FeedsPage extends StatelessWidget {
               upi: post['upi'] ?? '',
               message: post['message'] ?? '',
               amount: post['amount'] ?? 0,
-              toUserId: post['toUserId'] ?? '',
+              toUserId: post['email'] ?? '',
               fromUserId: authController.userEmail.value,
               postId: postDoc.id,
               isTopUser: leaderboardUserIds.contains(post['toUserId']),

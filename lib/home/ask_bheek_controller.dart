@@ -16,6 +16,7 @@ class AskBheekController extends GetxController {
   var funnyMessages = <String>[].obs;
   var selectedImage = Rxn<File>();
   var imageUrl = ''.obs;
+  final auth = Get.find<AuthController>();
 
   static final List<String> staticFunnyMessages = [
     "Bhai, lunch ke liye ₹50 bhej de, bhookh lagi hai!",
@@ -168,11 +169,52 @@ class AskBheekController extends GetxController {
     final auth = Get.find<AuthController>();
     final upiId = upiIdController.text.trim();
 
+    // --- Restriction: Only 3 requests per week ---
+    final now = DateTime.now();
+    final oneWeekAgo = now.subtract(Duration(days: 7));
+    final userFeeds = await FirebaseFirestore.instance
+        .collection('feeds')
+        .where('email', isEqualTo: auth.userEmail.value)
+        .where('createdAt', isGreaterThan: Timestamp.fromDate(oneWeekAgo))
+        .get();
+
+    if (userFeeds.docs.length >= 3) {
+      Get.defaultDialog(
+        title: 'Limit Reached!',
+        titleStyle: TextStyle(
+          color: Colors.red.shade700,
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+        ),
+        content: Column(
+          children: [
+            Icon(Icons.lock_clock, color: Colors.red.shade400, size: 48),
+            SizedBox(height: 16),
+            Text(
+              'You can only create 3 Bheek requests per week.\n\nTry again next week!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+            ),
+          ],
+        ),
+        confirm: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade700,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: Text('OK', style: TextStyle(color: Colors.white)),
+          onPressed: () => Get.back(),
+        ),
+        radius: 16,
+      );
+      return;
+    }
+    // --- End Restriction ---
+
     String? uploadedImageUrl;
     if (selectedImage.value != null) {
       uploadedImageUrl = await uploadImageToCloudinary(selectedImage.value!);
       if (uploadedImageUrl == null) {
-        // Show error and stop further execution
         Get.snackbar('Error', 'Image upload failed. Please try again.');
         return;
       }
@@ -221,5 +263,44 @@ class AskBheekController extends GetxController {
     upiIdController.dispose();
     super.onClose();
   }
+}
+
+Future<void> updateBheekStats({
+  required String donorEmail,
+  required String receiverEmail,
+  required int amount,
+}) async {
+  final users = FirebaseFirestore.instance.collection('users');
+
+  // Update donor's totalBheekGiven
+  await users.doc(donorEmail).set({
+    'totalBheekGiven': FieldValue.increment(amount),
+  }, SetOptions(merge: true));
+
+  // Update receiver's totalBheekReceived
+  await users.doc(receiverEmail).set({
+    'totalBheekReceived': FieldValue.increment(amount),
+  }, SetOptions(merge: true));
+}
+
+Future<void> processDonation({
+  required String feedOwnerEmail,
+  required int donatedAmount,
+}) async {
+  final auth = Get.find<AuthController>();
+  final currentUserEmail = auth.userEmail.value;
+
+  // 1. Your payment logic here (e.g., open UPI intent, wait for success)
+  // ...
+
+  // 2. After payment is successful, update stats:
+  await updateBheekStats(
+    donorEmail: currentUserEmail,
+    receiverEmail: feedOwnerEmail,
+    amount: donatedAmount,
+  );
+
+  // 3. Optionally, show a success message or update UI
+  Get.snackbar('Thank you!', 'Your donation was successful.');
 }
 
