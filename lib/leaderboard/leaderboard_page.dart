@@ -160,7 +160,7 @@ class LeaderboardPage extends StatelessWidget {
                               ),
                           ],
                         ),
-                        subtitle: Row(
+                        /*subtitle: Row(
                           children: [
                             Icon(Icons.email, size: 14, color: Colors.grey[600]),
                             SizedBox(width: 4),
@@ -175,7 +175,7 @@ class LeaderboardPage extends StatelessWidget {
                               ),
                             ),
                           ],
-                        ),
+                        ),*/
                         trailing: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
