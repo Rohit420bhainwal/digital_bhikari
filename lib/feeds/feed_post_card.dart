@@ -7,17 +7,19 @@ import 'package:intl/intl.dart';
 import '../home/ask_bheek_controller.dart';
 import 'feed_post_controller.dart';
 import 'comments_sheet.dart';
+import 'package:flutter/services.dart';
 
 class FeedPostCard extends StatefulWidget {
   final String name;
   final String upi;
   final String message;
   final int amount;
-  final String toUserId; // This should be the receiver's email from feed['email']
+  final String toUserId;
   final String fromUserId;
   final String postId;
   final bool isTopUser;
   final String imageUrl;
+  final bool isAdmin; // <-- Add this
 
   FeedPostCard({
     required this.name,
@@ -29,6 +31,7 @@ class FeedPostCard extends StatefulWidget {
     required this.postId,
     this.isTopUser = false,
     this.imageUrl = '',
+    this.isAdmin = false, // <-- Add this
     Key? key,
   }) : super(key: key);
 
@@ -138,6 +141,33 @@ class _FeedPostCardState extends State<FeedPostCard> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('External Wallet Selected')),
     );
+  }
+
+  Future<void> _deleteFeed() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Feed'),
+        content: Text('Are you sure you want to delete this feed?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Delete'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await FirebaseFirestore.instance.collection('feeds').doc(widget.postId).delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Feed deleted')),
+      );
+    }
   }
 
   @override
@@ -278,9 +308,21 @@ class _FeedPostCardState extends State<FeedPostCard> {
                         content: TextField(
                           controller: amountController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(4), // Max 4 digits (up to 1000)
+                          ],
                           decoration: InputDecoration(
-                            hintText: 'Enter amount in ₹',
+                            hintText: 'Enter amount in ₹ (1-1000)',
+                            errorText: (amountController.text.isNotEmpty &&
+                                        (int.tryParse(amountController.text) == null ||
+                                         int.parse(amountController.text) < 1 ||
+                                         int.parse(amountController.text) > 1000))
+                                    ? 'Enter a valid amount (1-1000)'
+                                    : null,
                           ),
+                          enableInteractiveSelection: false, // Disables copy-paste
+                          onChanged: (_) => (context as Element).markNeedsBuild(), // To update errorText
                         ),
                         actions: [
                           TextButton(
@@ -290,7 +332,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
                           ElevatedButton(
                             onPressed: () {
                               final amt = int.tryParse(amountController.text);
-                              if (amt != null && amt > 0) {
+                              if (amt != null && amt >= 1 && amt <= 1000) {
                                 Navigator.of(context).pop(amt);
                               }
                             },
@@ -322,6 +364,12 @@ class _FeedPostCardState extends State<FeedPostCard> {
                     size: 28,
                   ),
                 ),
+                if (widget.isAdmin)
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: _deleteFeed,
+                    tooltip: 'Delete Feed',
+                  ),
               ],
             ),
           ],

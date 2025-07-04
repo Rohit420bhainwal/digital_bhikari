@@ -2,10 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'splash_controller.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Get.put(SplashController());
+    // Do NOT call checkAppVersion here anymore!
+  }
+
   @override
   Widget build(BuildContext context) {
-    Get.put(SplashController());
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -45,7 +56,7 @@ class SplashScreen extends StatelessWidget {
               ),
               SizedBox(height: 16),
               Text(
-                'Bheek mangna bhi ab digital ho gaya!',
+                "Bheek mangna bhi ab digital ho gaya!",
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.white70,

@@ -23,34 +23,29 @@ android {
         applicationId = "com.digitalbhikari.app.digital_bhikari"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 1
+        versionName = "1.0.0"
     }
 
-    // 🔹 Optional: Add product flavors for dev/prod
-  /*  flavorDimensions = ["env"]
-    productFlavors {
-        dev {
-            dimension "env"
-            applicationIdSuffix ".dev"
-            versionNameSuffix "-dev"
-        }
-        prod {
-            dimension "env"
-            // No suffix — this is the production variant
+    signingConfigs {
+        release {
+            storeFile file("digital_bhikari.keystore")
+            storePassword "MyStorePass123!"
+            keyAlias "digital_bhikari_key"
+            keyPassword "MyStorePass123!"
         }
     }
-*/
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
 
         debug {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.debug
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

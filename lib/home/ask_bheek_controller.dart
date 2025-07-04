@@ -135,6 +135,46 @@ class AskBheekController extends GetxController {
   }
 
   Future<String?> uploadImageToCloudinary(File imageFile) async {
+    const int maxImageSizeInMB = 5;
+
+    final int fileSizeInBytes = await imageFile.length();
+    final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+    if (fileSizeInMB > maxImageSizeInMB) {
+      Get.snackbar(
+        'File Too Large',
+        'Please upload an image smaller than $maxImageSizeInMB MB.',
+      );
+      return null;
+    }
+
+    try {
+      final cloudName = 'djfkguxxc';
+      final uploadPreset = 'digital_bhikari_unsigned';
+
+      final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+      final request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+      final response = await request.send();
+      final resStr = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final data = json.decode(resStr);
+        return data['secure_url'];
+      } else {
+        Get.snackbar('Image Upload Failed', 'Cloudinary error: $resStr');
+        return null;
+      }
+    } catch (e) {
+      Get.snackbar('Image Upload Failed', e.toString());
+      return null;
+    }
+  }
+
+
+  /*Future<String?> uploadImageToCloudinary(File imageFile) async {
     try {
       final cloudName = 'djfkguxxc';
       final uploadPreset = 'digital_bhikari_unsigned'; // Create in Cloudinary dashboard
@@ -158,7 +198,7 @@ class AskBheekController extends GetxController {
       Get.snackbar('Image Upload Failed', e.toString());
       return null;
     }
-  }
+  }*/
 
   void askBheek() async {
     final message = messageController.text.trim();

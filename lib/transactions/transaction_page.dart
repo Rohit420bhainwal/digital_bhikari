@@ -33,8 +33,8 @@ class TransactionPage extends StatelessWidget {
                       final isDonor = tx['fromUserId'] == authController.userEmail.value;
                       final amount = tx['amount'] ?? 0;
                       final name = isDonor
-                          ? (tx['toUserId'] ?? 'Unknown')
-                          : (tx['fromUserId'] ?? 'Unknown');
+                          ? (controller.userNames[tx['toUserId']] ?? tx['toUserId'])
+                          : (controller.userNames[tx['fromUserId']] ?? tx['fromUserId']);
                       final date = tx['timestamp'] != null
                           ? DateFormat('dd MMM yyyy, hh:mm a').format(
                               (tx['timestamp'] as Timestamp).toDate())
