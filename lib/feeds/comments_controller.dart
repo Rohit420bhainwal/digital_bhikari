@@ -8,6 +8,7 @@ class CommentsController extends GetxController {
 
   var comments = <Map<String, dynamic>>[].obs;
   final commentController = TextEditingController();
+  final commentText = ''.obs; // 🔹 Track text value
   var isSending = false.obs;
 
   @override
@@ -29,7 +30,7 @@ class CommentsController extends GetxController {
   }
 
   Future<void> sendComment(String userName, String userEmail) async {
-    final text = commentController.text.trim();
+    final text = commentText.value.trim();
     if (text.isEmpty) return;
     isSending.value = true;
     try {
@@ -44,6 +45,7 @@ class CommentsController extends GetxController {
         'timestamp': FieldValue.serverTimestamp(),
       });
       commentController.clear();
+      commentText.value = ''; // 🔹 Reset after sending
       Get.snackbar('Success', 'Comment sent!');
     } catch (e) {
       Get.snackbar('Error', 'Failed to send comment');

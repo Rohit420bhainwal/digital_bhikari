@@ -42,7 +42,7 @@ dependencies:
   firebase_core: ^3.15.0
   firebase_auth: ^5.6.0
   cloud_firestore: ^5.6.9
-  upi_india: ^3.0.1
+ # upi_india: ^3.0.1
   razorpay_flutter: ^1.4.0
   lottie: ^3.3.1
   intl: ^0.20.2
@@ -53,6 +53,8 @@ dependencies:
   firebase_messaging: ^15.2.8
   package_info_plus: ^8.3.0
   device_info_plus: ^11.3.0
+  firebase_analytics: ^11.5.2
+  firebase_crashlytics: ^4.3.9
 
 dev_dependencies:
   flutter_test:
@@ -115,3 +117,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+

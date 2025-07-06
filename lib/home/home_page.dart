@@ -139,7 +139,7 @@ class HomePage extends StatelessWidget {
                 // Funny Messages Dropdown
                 if (controller.funnyMessages.isNotEmpty) ...[
                   Text(
-                    'Or pick a funny message:',
+                    'Or pick a bheek message:',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
@@ -147,7 +147,7 @@ class HomePage extends StatelessWidget {
                     value: controller.funnyMessages.contains(controller.messageController.text)
                         ? controller.messageController.text
                         : null,
-                    hint: Text('Pick a funny message...'),
+                    hint: Text('Pick a bheek message...'),
                     items: controller.funnyMessages
                         .map((msg) => DropdownMenuItem(
                               value: msg,

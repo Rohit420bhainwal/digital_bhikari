@@ -3,6 +3,7 @@ plugins {
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
     id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
 }
 
 android {
@@ -34,21 +35,46 @@ android {
             keyAlias "digital_bhikari_key"
             keyPassword "MyStorePass123!"
         }
+
+        debug {
+            storeFile file("digital_bhikari.keystore")
+            storePassword "MyStorePass123!"
+            keyAlias "digital_bhikari_key"
+            keyPassword "MyStorePass123!"
+        }
     }
 
     buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            shrinkResources false
+        debug {
+          //  applicationIdSuffix ".debug"
+          //  versionNameSuffix "-debug"
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
 
-        debug {
-            signingConfig signingConfigs.debug
-            minifyEnabled false
-            shrinkResources false
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Optional: support multiple google-services.json files
+    sourceSets {
+        debug {
+            res.srcDirs += 'src/debug/res'
+        }
+        release {
+            res.srcDirs += 'src/release/res'
         }
     }
 }

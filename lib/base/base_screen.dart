@@ -54,14 +54,14 @@ class BaseScreen extends StatelessWidget {
                       child: Icon(Icons.person, size: 40, color: Theme.of(context).colorScheme.primary),
                     ),
             )),
-            ListTile(
+            /*ListTile(
               leading: Icon(Icons.home, color: Theme.of(context).colorScheme.primary),
               title: Text('Home'),
               onTap: () {
                 controller.changeTabIndex(0);
                 Navigator.pop(context);
               },
-            ),
+            ),*/
             ListTile(
               leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
               title: Text('Profile'),
@@ -70,14 +70,14 @@ class BaseScreen extends StatelessWidget {
                 Get.to(() => ProfilePage());
               },
             ),
-            ListTile(
+            /*ListTile(
               leading: Icon(Icons.settings, color: Theme.of(context).colorScheme.primary),
               title: Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
                 // Add settings navigation if needed
               },
-            ),
+            ),*/
             Spacer(),
             Divider(),
             ListTile(

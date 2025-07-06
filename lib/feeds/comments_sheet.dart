@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'feed_post_controller.dart';
+import 'feed_post_controller.dart'; // or comments_controller.dart
 import '../auth/auth_controller.dart';
 
 class CommentsSheet extends StatelessWidget {
   final String postId;
-  final FeedPostController controller;
+  final FeedPostController controller; // or CommentsController
   CommentsSheet({required this.postId, required this.controller});
 
   @override
@@ -28,16 +28,16 @@ class CommentsSheet extends StatelessWidget {
               child: controller.comments.isEmpty
                   ? Center(child: Text('No comments yet.'))
                   : ListView.builder(
-                      itemCount: controller.comments.length,
-                      itemBuilder: (context, index) {
-                        final comment = controller.comments[index];
-                        return ListTile(
-                          leading: CircleAvatar(child: Text(comment['userName']?[0] ?? '?')),
-                          title: Text(comment['userName'] ?? ''),
-                          subtitle: Text(comment['text'] ?? ''),
-                        );
-                      },
-                    ),
+                itemCount: controller.comments.length,
+                itemBuilder: (context, index) {
+                  final comment = controller.comments[index];
+                  return ListTile(
+                    leading: CircleAvatar(child: Text(comment['userName']?[0] ?? '?')),
+                    title: Text(comment['userName'] ?? ''),
+                    subtitle: Text(comment['text'] ?? ''),
+                  );
+                },
+              ),
             ),
             Row(
               children: [
@@ -49,8 +49,9 @@ class CommentsSheet extends StatelessWidget {
                       border: OutlineInputBorder(),
                     ),
                     textInputAction: TextInputAction.send,
+                    onChanged: (value) => controller.commentText.value = value, // 🔹 Track changes
                     onSubmitted: (_) {
-                      if (controller.commentController.text.trim().isNotEmpty &&
+                      if (controller.commentText.value.trim().isNotEmpty &&
                           !controller.isSending.value) {
                         controller.sendComment(
                           authController.userName.value,
@@ -63,26 +64,26 @@ class CommentsSheet extends StatelessWidget {
                 SizedBox(width: 8),
                 Obx(() => controller.isSending.value
                     ? Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
                     : IconButton(
-                        icon: Icon(Icons.send,
-                            color: controller.commentController.text.trim().isEmpty
-                                ? Colors.grey
-                                : Theme.of(context).colorScheme.primary),
-                        onPressed: controller.commentController.text.trim().isEmpty ||
-                                controller.isSending.value
-                            ? null
-                            : () => controller.sendComment(
-                                  authController.userName.value,
-                                  authController.userEmail.value,
-                                ),
-                      )),
+                  icon: Icon(Icons.send,
+                      color: controller.commentText.value.trim().isEmpty
+                          ? Colors.grey
+                          : Theme.of(context).colorScheme.primary),
+                  onPressed: controller.commentText.value.trim().isEmpty ||
+                      controller.isSending.value
+                      ? null
+                      : () => controller.sendComment(
+                    authController.userName.value,
+                    authController.userEmail.value,
+                  ),
+                )),
               ],
             ),
           ],

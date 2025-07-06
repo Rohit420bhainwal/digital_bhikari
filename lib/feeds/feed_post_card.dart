@@ -44,6 +44,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
   Razorpay? _razorpay;
   _PendingDonation? _pendingDonation;
 
+
   @override
   void initState() {
     super.initState();
@@ -172,6 +173,8 @@ class _FeedPostCardState extends State<FeedPostCard> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserEmail = Get.find<AskBheekController>().auth.userEmail.value;
+    final isMyOwnFeed = widget.toUserId == currentUserEmail;
     return Card(
       margin: EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -298,6 +301,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
                 ),
                 Spacer(),
                 // Bheek Do Button (icon only)
+                if (!isMyOwnFeed)
                 ElevatedButton(
                   onPressed: () async {
                     final amountController = TextEditingController();

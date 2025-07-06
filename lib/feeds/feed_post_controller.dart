@@ -10,6 +10,7 @@ class FeedPostController extends GetxController {
   var likesCount = 0.obs;
   var isLiked = false.obs;
   var comments = <Map<String, dynamic>>[].obs;
+  final commentText = ''.obs; // 🔹 Add this line
   final commentController = TextEditingController();
   var isSending = false.obs;
 
@@ -59,7 +60,8 @@ class FeedPostController extends GetxController {
   }
 
   Future<void> sendComment(String userName, String userEmail) async {
-    final text = commentController.text.trim();
+ //   final text = commentController.text.trim();
+    final text = commentText.value.trim();
     if (text.isEmpty) return;
     isSending.value = true;
     try {

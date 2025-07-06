@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "481649549130-kos54ge4hv1hs9ilf0u55khrplnqlf0d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitalbhikari.app.digital_bhikari",
+            "certificate_hash": "503a31702a79627a76d9b44cb394d0f1f9b17860"
+          }
+        },
+        {
           "client_id": "481649549130-0o2iafjauimitoqsbnk11jgnp5t7kjqq.apps.googleusercontent.com",
           "client_type": 3
         }
