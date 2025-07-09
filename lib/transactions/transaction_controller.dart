@@ -24,6 +24,7 @@ class TransactionController extends GetxController {
     FirebaseFirestore.instance
         .collection('transactions')
         .orderBy('timestamp', descending: true)
+        .limit(11)
         .snapshots()
         .listen((snapshot) async {
       final txs = snapshot.docs

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
@@ -43,7 +45,20 @@ class _FeedPostCardState extends State<FeedPostCard> {
   late FeedPostController controller;
   Razorpay? _razorpay;
   _PendingDonation? _pendingDonation;
+  final Color primaryColor = const Color(0xFF1976D2);
+  final Color accentColor = const Color(0xFFFFC107);
 
+  final List<String> thankYouMessages = [
+    "Bhai ne paisa phenka nahi... dil jeet liya re baba! 💸❤️",
+    "Tumne diya... aur bhikari ne liya... ab zindagi set hai bhava! 😎💰",
+    "Digital Bhikari ki taraf se ek dil se thank you... aur ek digital jhappi 🤗💸",
+    "Aree o bhai! Tumhare ₹ ne toh Bhikari ke dil ko sukoon de diya! 🙏😂",
+    "Tere jaise bande se milke lagta hai, duniya mein humanity abhi bhi zinda hai re bhava! 😭❤️",
+    "Aree bhai... aaj tu nahi hota toh bhikari phir se Maggi kha raha hota! 🍜😂",
+    "Jab tak tu hai... bhikari kabhi bhookha nahi soyega! 🌙🍛 Jai Bhikshupati! 😂",
+    "Paisa diya aur jaadu kar diya! Digital Bhikari ab iPhone lene ka soch raha hai! 📱💸",
+    "Tera donation mila... ab toh Bhikari bhi LinkedIn pe ‘Investor-backed’ likhega! 😎🔥",
+  ];
 
   @override
   void initState() {
@@ -87,9 +102,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
         'contact': '',
         'email': '',
       },
-      'external': {
-        'wallets': []
-      }
+      'external': {'wallets': []}
     };
 
     try {
@@ -164,7 +177,10 @@ class _FeedPostCardState extends State<FeedPostCard> {
       ),
     );
     if (confirm == true) {
-      await FirebaseFirestore.instance.collection('feeds').doc(widget.postId).delete();
+      await FirebaseFirestore.instance
+          .collection('feeds')
+          .doc(widget.postId)
+          .delete();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Feed deleted')),
       );
@@ -173,7 +189,8 @@ class _FeedPostCardState extends State<FeedPostCard> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserEmail = Get.find<AskBheekController>().auth.userEmail.value;
+    final currentUserEmail =
+        Get.find<AskBheekController>().auth.userEmail.value;
     final isMyOwnFeed = widget.toUserId == currentUserEmail;
     return Card(
       margin: EdgeInsets.only(bottom: 20),
@@ -259,38 +276,40 @@ class _FeedPostCardState extends State<FeedPostCard> {
               children: [
                 // Like Button
                 Obx(() => Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        controller.isLiked.value
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: controller.isLiked.value
-                            ? Colors.pink
-                            : Colors.grey[700],
-                        size: 28,
-                      ),
-                      onPressed: controller.toggleLike,
-                    ),
-                    Text(
-                      '${controller.likesCount.value} likes',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ],
-                )),
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            controller.isLiked.value
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: controller.isLiked.value
+                                ? Colors.pink
+                                : Colors.grey[700],
+                            size: 28,
+                          ),
+                          onPressed: controller.toggleLike,
+                        ),
+                        Text(
+                          '${controller.likesCount.value} likes',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ],
+                    )),
                 SizedBox(width: 8),
                 // Comment Button
                 IconButton(
-                  icon: Icon(Icons.mode_comment_outlined, color: Colors.grey[700], size: 26),
+                  icon: Icon(Icons.mode_comment_outlined,
+                      color: Colors.grey[700], size: 26),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(18)),
                       ),
                       builder: (_) => CommentsSheet(
                         postId: widget.postId,
@@ -302,72 +321,80 @@ class _FeedPostCardState extends State<FeedPostCard> {
                 Spacer(),
                 // Bheek Do Button (icon only)
                 if (!isMyOwnFeed)
-                ElevatedButton(
-                  onPressed: () async {
-                    final amountController = TextEditingController();
-                    final entered = await showDialog<int>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('Enter Amount'),
-                        content: TextField(
-                          controller: amountController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(4), // Max 4 digits (up to 1000)
+                  ElevatedButton(
+                    onPressed: () async {
+                      final amountController = TextEditingController();
+                      final entered = await showDialog<int>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Enter Amount'),
+                          content: TextField(
+                            controller: amountController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(4),
+                              // Max 4 digits (up to 1000)
+                            ],
+                            decoration: InputDecoration(
+                              hintText: 'Enter amount in ₹ (1-1000)',
+                              errorText: (amountController.text.isNotEmpty &&
+                                      (int.tryParse(amountController.text) ==
+                                              null ||
+                                          int.parse(amountController.text) <
+                                              1 ||
+                                          int.parse(amountController.text) >
+                                              1000))
+                                  ? 'Enter a valid amount (1-1000)'
+                                  : null,
+                            ),
+                            enableInteractiveSelection: false,
+                            // Disables copy-paste
+                            onChanged: (_) => (context as Element)
+                                .markNeedsBuild(), // To update errorText
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                final amt = int.tryParse(amountController.text);
+                                if (amt != null && amt >= 1 && amt <= 1000) {
+                                  Navigator.of(context).pop(amt);
+                                }
+                              },
+                              child: Text('Pay'),
+                            ),
                           ],
-                          decoration: InputDecoration(
-                            hintText: 'Enter amount in ₹ (1-1000)',
-                            errorText: (amountController.text.isNotEmpty &&
-                                        (int.tryParse(amountController.text) == null ||
-                                         int.parse(amountController.text) < 1 ||
-                                         int.parse(amountController.text) > 1000))
-                                    ? 'Enter a valid amount (1-1000)'
-                                    : null,
-                          ),
-                          enableInteractiveSelection: false, // Disables copy-paste
-                          onChanged: (_) => (context as Element).markNeedsBuild(), // To update errorText
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text('Cancel'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              final amt = int.tryParse(amountController.text);
-                              if (amt != null && amt >= 1 && amt <= 1000) {
-                                Navigator.of(context).pop(amt);
-                              }
-                            },
-                            child: Text('Pay'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (entered != null && entered > 0) {
-                      print('Calling startUpiPayment with feedOwnerEmail: ${widget.toUserId}');
-                      await startUpiPayment(
-                        upiId: widget.upi,
-                        receiverName: widget.name,
-                        amount: entered,
-                        feedOwnerEmail: widget.toUserId, // This must be the receiver's email!
                       );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    shape: CircleBorder(),
-                    padding: EdgeInsets.all(12),
-                    elevation: 2,
+
+                      if (entered != null && entered > 0) {
+                        print(
+                            'Calling startUpiPayment with feedOwnerEmail: ${widget.toUserId}');
+                        await startUpiPayment(
+                          upiId: widget.upi,
+                          receiverName: widget.name,
+                          amount: entered,
+                          feedOwnerEmail: widget
+                              .toUserId, // This must be the receiver's email!
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange.shade700,
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(12),
+                      elevation: 2,
+                    ),
+                    child: Icon(
+                      Icons.volunteer_activism,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.volunteer_activism,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
                 if (widget.isAdmin)
                   IconButton(
                     icon: Icon(Icons.delete, color: Colors.red),
@@ -396,18 +423,26 @@ class _FeedPostCardState extends State<FeedPostCard> {
 
       int weekNumber(DateTime date) {
         final firstDayOfYear = DateTime(date.year, 1, 1);
-        return ((date.difference(firstDayOfYear).inDays + firstDayOfYear.weekday) / 7).ceil();
+        return ((date.difference(firstDayOfYear).inDays +
+                    firstDayOfYear.weekday) /
+                7)
+            .ceil();
       }
 
       // --- Update Donor's currentWeekDonatedBheek ---
       final donorDoc = await users.doc(donorEmail).get();
       Map<String, dynamic> donorData = donorDoc.data() ?? {};
-      Map<String, dynamic> donorWeek = (donorData['currentWeekDonatedBheek'] as Map<String, dynamic>?) ?? {'amount': 0, 'date': nowIso};
+      Map<String, dynamic> donorWeek =
+          (donorData['currentWeekDonatedBheek'] as Map<String, dynamic>?) ??
+              {'amount': 0, 'date': nowIso};
       int donorLastAmount = donorWeek['amount'] ?? 0;
       DateTime? donorLastDate = DateTime.tryParse(donorWeek['date'] ?? nowIso);
-      int donorLastWeek = donorLastDate != null ? weekNumber(donorLastDate) : -1;
+      int donorLastWeek =
+          donorLastDate != null ? weekNumber(donorLastDate) : -1;
       int donorNowWeek = weekNumber(now);
-      int donorNewAmount = (donorNowWeek == donorLastWeek) ? donorLastAmount + donatedAmount : donatedAmount;
+      int donorNewAmount = (donorNowWeek == donorLastWeek)
+          ? donorLastAmount + donatedAmount
+          : donatedAmount;
 
       print('Updating donor: $donorEmail');
       await users.doc(donorEmail).set({
@@ -423,12 +458,18 @@ class _FeedPostCardState extends State<FeedPostCard> {
       print('Fetching receiver doc: $feedOwnerEmail');
       final receiverDoc = await users.doc(feedOwnerEmail).get();
       Map<String, dynamic> receiverData = receiverDoc.data() ?? {};
-      Map<String, dynamic> receiverWeek = (receiverData['currentWeekReceivedBheek'] as Map<String, dynamic>?) ?? {'amount': 0, 'date': nowIso};
+      Map<String, dynamic> receiverWeek =
+          (receiverData['currentWeekReceivedBheek'] as Map<String, dynamic>?) ??
+              {'amount': 0, 'date': nowIso};
       int receiverLastAmount = receiverWeek['amount'] ?? 0;
-      DateTime? receiverLastDate = DateTime.tryParse(receiverWeek['date'] ?? nowIso);
-      int receiverLastWeek = receiverLastDate != null ? weekNumber(receiverLastDate) : -1;
+      DateTime? receiverLastDate =
+          DateTime.tryParse(receiverWeek['date'] ?? nowIso);
+      int receiverLastWeek =
+          receiverLastDate != null ? weekNumber(receiverLastDate) : -1;
       int receiverNowWeek = weekNumber(now);
-      int receiverNewAmount = (receiverNowWeek == receiverLastWeek) ? receiverLastAmount + donatedAmount : donatedAmount;
+      int receiverNewAmount = (receiverNowWeek == receiverLastWeek)
+          ? receiverLastAmount + donatedAmount
+          : donatedAmount;
 
       print('Updating receiver: $feedOwnerEmail');
       await users.doc(feedOwnerEmail).set({
@@ -447,11 +488,14 @@ class _FeedPostCardState extends State<FeedPostCard> {
         'amount': donatedAmount,
         'timestamp': FieldValue.serverTimestamp(),
       });
-
+      final random = Random();
+      final message = thankYouMessages[random.nextInt(thankYouMessages.length)];
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Donated ₹$donatedAmount to $feedOwnerEmail!'),
-          backgroundColor: Colors.green.shade100,
+          content: Text(message),
+          backgroundColor: primaryColor,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 3),
         ),
       );
     } catch (e) {
@@ -459,7 +503,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Donation failed: $e'),
-          backgroundColor: Colors.red.shade100,
+          backgroundColor: primaryColor,
         ),
       );
     }
@@ -469,5 +513,6 @@ class _FeedPostCardState extends State<FeedPostCard> {
 class _PendingDonation {
   final String feedOwnerEmail;
   final int amount;
+
   _PendingDonation(this.feedOwnerEmail, this.amount);
 }
