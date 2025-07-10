@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../auth/auth_controller.dart';
+import '../utils/bheek_messages.dart';
 
 class AskBheekController extends GetxController {
   final messageController = TextEditingController();
@@ -17,6 +19,9 @@ class AskBheekController extends GetxController {
   var selectedImage = Rxn<File>();
   var imageUrl = ''.obs;
   final auth = Get.find<AuthController>();
+  InterstitialAd? _interstitialAd;
+  final Color primaryColor = const Color(0xFF1976D2);
+  final Color accentColor = const Color(0xFFFFC107);
 
   static final List<String> staticFunnyMessages = [
     "Bhai, lunch ke liye ₹50 bhej de, bhookh lagi hai!",
@@ -71,11 +76,26 @@ class AskBheekController extends GetxController {
     "Aaj ka wish: bheek se movie!",
   ];
 
+  /*final List<String> bheekSuccessMessages = [
+    "Bheek ka request gaya... ab toh Ambani bhi dar gaya! 💸😂",
+    "Server hil gaya re baba... tere request se! 😂🙏",
+    "Tumne bheek maangi... aur universe ne suna! 🌌💰",
+    "Request gaya... ab paisa aane ka intezaar karo! 📩💸",
+    "Digital Bhikari bhi impressed ho gaya tumse! 😎🧢",
+    "System bolta: Bheek requested successfully... aur mast style mein! 😁🪙",
+    "UPI ready ho gaya... ab bhagwan hi bheek bheje! 🙏📱",
+    "Tumne button dabaya... aur bhikari ka sapna saj gaya! 🎉😄",
+    "Aree bhai, aise bheek maangoge toh Oscar bhi milega! 🏆😂",
+    "Yeh hui na baat! Digital bhikh bhi fashion ban gaya! 🤳🧢"
+  ];*/
+
+
   @override
   void onInit() {
     super.onInit();
     _loadUpiId();
     fetchFunnyMessages();
+    _loadAd();
   }
 
   Future<void> fetchFunnyMessages() async {
@@ -268,17 +288,102 @@ class AskBheekController extends GetxController {
       'imageUrl': uploadedImageUrl ?? '',
       'createdAt': FieldValue.serverTimestamp(),
     });
-
-    Get.snackbar(
-      'Request Sent',
-      'Message: $message',
-      backgroundColor: Colors.green.shade100,
-      colorText: Colors.black,
-      duration: Duration(seconds: 2),
-    );
+    _showAskBheekSuccess(message);
     messageController.clear();
     selectedImage.value = null;
+    await Future.delayed(Duration(seconds: 1));
+    _showAd();
   }
+
+  void _showAskBheekSuccess(String message) {
+
+    final funnyMessage = BheekMessages.getRandomMessage();
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.emoji_emotions, color: accentColor, size: 60),
+              const SizedBox(height: 16),
+              Text(
+                funnyMessage,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
+                child: const Text('OK', style: TextStyle(fontSize: 16)),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+
+
+  void _loadAd() {
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-5357447465713123/4529461813', // Replace with your actual Ad Unit ID
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          print('Interstitial ad loaded');
+        },
+        onAdFailedToLoad: (error) {
+          print('Interstitial ad failed to load: $error');
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _showAd() {
+    if (_interstitialAd != null) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _loadAd(); // Preload next ad
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _loadAd(); // Try loading again
+        },
+      );
+      _interstitialAd!.show();
+      _interstitialAd = null; // Avoid showing the same ad again
+    } else {
+      print('Interstitial ad not ready yet');
+    }
+  }
+
 
   Future<void> uploadFunnyMessages() async {
     final batch = FirebaseFirestore.instance.batch();
@@ -301,6 +406,7 @@ class AskBheekController extends GetxController {
   void onClose() {
     messageController.dispose();
     upiIdController.dispose();
+    _interstitialAd?.dispose();
     super.onClose();
   }
 }

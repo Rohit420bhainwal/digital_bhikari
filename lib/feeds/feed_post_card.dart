@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -47,6 +48,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
   _PendingDonation? _pendingDonation;
   final Color primaryColor = const Color(0xFF1976D2);
   final Color accentColor = const Color(0xFFFFC107);
+  InterstitialAd? _interstitialAd;
 
   final List<String> thankYouMessages = [
     "Bhai ne paisa phenka nahi... dil jeet liya re baba! 💸❤️",
@@ -71,6 +73,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    _loadAd();
   }
 
   @override
@@ -488,6 +491,23 @@ class _FeedPostCardState extends State<FeedPostCard> {
         'amount': donatedAmount,
         'timestamp': FieldValue.serverTimestamp(),
       });
+ /*     if (_interstitialAd != null) {
+        _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            _loadAd(); // Load next ad for future use
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            _loadAd(); // Reload if showing failed
+          },
+        );
+        _interstitialAd!.show();
+        _interstitialAd = null; // Avoid showing same ad again
+      } else {
+        print('Interstitial ad not ready yet');
+      }*/
+
       final random = Random();
       final message = thankYouMessages[random.nextInt(thankYouMessages.length)];
       ScaffoldMessenger.of(context).showSnackBar(
@@ -498,6 +518,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
           duration: Duration(seconds: 3),
         ),
       );
+
     } catch (e) {
       print('Donation error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -508,7 +529,31 @@ class _FeedPostCardState extends State<FeedPostCard> {
       );
     }
   }
+
+
+
+  void _loadAd() {
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-5357447465713123/4529461813',
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          setState(() {
+            _interstitialAd = ad;
+          });
+        },
+        onAdFailedToLoad: (error) {
+          setState(() {
+            _interstitialAd = null;
+          });
+        },
+      ),
+    );
+  }
+
 }
+
+
 
 class _PendingDonation {
   final String feedOwnerEmail;

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../home/home_page.dart';
@@ -13,6 +14,8 @@ class BaseController extends GetxController {
   }
 }
 
+
+
 class BaseScreen extends StatelessWidget {
   final List<Widget> pages = [
     HomePage(),
@@ -20,7 +23,6 @@ class BaseScreen extends StatelessWidget {
     LeaderboardPage(),
     TransactionPage(),
   ];
-
   @override
   Widget build(BuildContext context) {
     final BaseController controller = Get.put(BaseController());
@@ -56,4 +58,6 @@ class BaseScreen extends StatelessWidget {
       ),
     ));
   }
+
+
 }

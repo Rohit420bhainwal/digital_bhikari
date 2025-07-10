@@ -8,6 +8,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'notification/notification_detail_screen.dart';
+import 'notification/notification_screen.dart';
 import 'splash/splash_screen.dart';
 import 'base/base_screen.dart';
 import 'auth/google_signin_page.dart';
@@ -99,6 +101,8 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/', page: () => SplashScreen()),
         GetPage(name: '/login', page: () => GoogleSignInPage()),
         GetPage(name: '/base', page: () => BaseScreen()),
+        GetPage(name: '/notifications', page: () => const NotificationScreen()),
+        GetPage(name: '/notification_detail', page: () => const NotificationDetailScreen()),
       ],
     );
   }

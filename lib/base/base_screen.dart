@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:digital_bhikari/notification/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../feeds/feeds_page.dart';
@@ -66,6 +68,7 @@ class BaseScreen extends StatelessWidget {
               leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
               title: Text('Profile'),
               onTap: () {
+               // updateNotification();
                 Navigator.pop(context);
                 Get.to(() => ProfilePage());
               },
@@ -78,6 +81,15 @@ class BaseScreen extends StatelessWidget {
                 // Add settings navigation if needed
               },
             ),*/
+            ListTile(
+              leading: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+              title: Text('Notification'),
+              onTap: () {
+                // updateNotification();
+                Navigator.pop(context);
+                Get.to(() => NotificationScreen());
+              },
+            ),
             Spacer(),
             Divider(),
             ListTile(
@@ -103,5 +115,13 @@ class BaseScreen extends StatelessWidget {
         ],
       ),
     ));
+  }
+
+  void updateNotification(){
+    FirebaseFirestore.instance.collection('notifications').add({
+      'title': 'Welcome to Digital Bhikari!',
+      'message': 'Start requesting bheek in style. Check out the latest features!',
+      'timestamp': FieldValue.serverTimestamp()
+    });
   }
 }
