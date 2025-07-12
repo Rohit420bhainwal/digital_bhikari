@@ -22,6 +22,7 @@ class AskBheekController extends GetxController {
   InterstitialAd? _interstitialAd;
   final Color primaryColor = const Color(0xFF1976D2);
   final Color accentColor = const Color(0xFFFFC107);
+  var isSubmitting = false.obs;
 
   static final List<String> staticFunnyMessages = [
     "Bhai, lunch ke liye ₹50 bhej de, bhookh lagi hai!",
@@ -194,33 +195,11 @@ class AskBheekController extends GetxController {
   }
 
 
-  /*Future<String?> uploadImageToCloudinary(File imageFile) async {
-    try {
-      final cloudName = 'djfkguxxc';
-      final uploadPreset = 'digital_bhikari_unsigned'; // Create in Cloudinary dashboard
 
-      final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-      final request = http.MultipartRequest('POST', url)
-        ..fields['upload_preset'] = uploadPreset
-        ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+  /*void askBheek() async {
+    if (isSubmitting.value) return; // Avoid double tap
+    isSubmitting.value = true;
 
-      final response = await request.send();
-      final resStr = await response.stream.bytesToString();
-
-      if (response.statusCode == 200) {
-        final data = json.decode(resStr);
-        return data['secure_url'];
-      } else {
-        Get.snackbar('Image Upload Failed', 'Cloudinary error: $resStr');
-        return null;
-      }
-    } catch (e) {
-      Get.snackbar('Image Upload Failed', e.toString());
-      return null;
-    }
-  }*/
-
-  void askBheek() async {
     final message = messageController.text.trim();
     if (message.isEmpty) {
       Get.snackbar('Error', 'Please enter a message');
@@ -293,7 +272,96 @@ class AskBheekController extends GetxController {
     selectedImage.value = null;
     await Future.delayed(Duration(seconds: 1));
     _showAd();
+  }*/
+
+  void askBheek() async {
+    if (isSubmitting.value) return; // Prevent multiple submissions
+    isSubmitting.value = true;
+
+    try {
+      final message = messageController.text.trim();
+      if (message.isEmpty) {
+        Get.snackbar('Error', 'Please enter a message');
+        return;
+      }
+
+      final auth = Get.find<AuthController>();
+      final upiId = upiIdController.text.trim();
+
+      // --- Restriction: Only 3 requests per week ---
+      final now = DateTime.now();
+      final oneWeekAgo = now.subtract(const Duration(days: 7));
+      final userFeeds = await FirebaseFirestore.instance
+          .collection('feeds')
+          .where('email', isEqualTo: auth.userEmail.value)
+          .where('createdAt', isGreaterThan: Timestamp.fromDate(oneWeekAgo))
+          .get();
+
+      if (userFeeds.docs.length >= 3) {
+        Get.defaultDialog(
+          title: 'Limit Reached!',
+          titleStyle: TextStyle(
+            color: Colors.red.shade700,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+          content: Column(
+            children: [
+              Icon(Icons.lock_clock, color: Colors.red.shade400, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'You can only create 3 Bheek requests per week.\n\nTry again next week!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+              ),
+            ],
+          ),
+          confirm: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade700,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
+            onPressed: () => Get.back(),
+          ),
+          radius: 16,
+        );
+        return;
+      }
+      // --- End Restriction ---
+
+      String? uploadedImageUrl;
+      if (selectedImage.value != null) {
+        uploadedImageUrl = await uploadImageToCloudinary(selectedImage.value!);
+        if (uploadedImageUrl == null) {
+          Get.snackbar('Error', 'Image upload failed. Please try again.');
+          return;
+        }
+      }
+
+      await FirebaseFirestore.instance.collection('feeds').add({
+        'name': auth.userName.value,
+        'email': auth.userEmail.value,
+        'upi': upiId,
+        'message': message,
+        'imageUrl': uploadedImageUrl ?? '',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      _showAskBheekSuccess(message);
+      messageController.clear();
+      selectedImage.value = null;
+
+      await Future.delayed(const Duration(seconds: 1));
+      _showAd();
+
+    } catch (e) {
+      Get.snackbar('Error', 'Something went wrong: $e');
+    } finally {
+      isSubmitting.value = false;
+    }
   }
+
 
   void _showAskBheekSuccess(String message) {
 

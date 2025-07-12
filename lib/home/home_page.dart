@@ -229,7 +229,7 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Ask Bheek Button
-                SizedBox(
+                /*SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.volunteer_activism, color: Colors.white),
@@ -242,7 +242,35 @@ class HomePage extends StatelessWidget {
                     ),
                     onPressed: controller.hasUpiId.value ? controller.askBheek : null,
                   ),
-                ),
+                ),*/
+
+
+                Obx(() => SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: controller.isSubmitting.value
+                        ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                        : Icon(Icons.volunteer_activism, color: Colors.white),
+                    label: Text(controller.isSubmitting.value ? 'Requesting...' : 'Ask Bheek'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange.shade700,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: controller.hasUpiId.value && !controller.isSubmitting.value
+                        ? controller.askBheek
+                        : null,
+                  ),
+                ))
+
               ],
 
               // Hidden: Upload Funny Messages (for admin/dev)

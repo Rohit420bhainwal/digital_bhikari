@@ -24,8 +24,8 @@ android {
         applicationId = "com.digitalbhikari.app.digital_bhikari"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 5
+        versionName = "1.2.1"
     }
 
     signingConfigs {

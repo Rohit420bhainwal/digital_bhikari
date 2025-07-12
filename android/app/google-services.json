@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "481649549130-0f715jvg76mqn9gmcbbdbj0g99kc5jrg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitalbhikari.app.digital_bhikari",
+            "certificate_hash": "8d7bb08fd681c31f14d8e6f3e7c68368566c28e3"
+          }
+        },
+        {
           "client_id": "481649549130-kos54ge4hv1hs9ilf0u55khrplnqlf0d.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -37,6 +45,13 @@
             {
               "client_id": "481649549130-0o2iafjauimitoqsbnk11jgnp5t7kjqq.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "481649549130-6h85r79a1vatlr5iaqnadba2493l6d9v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lawyerConsultationApp"
+              }
             }
           ]
         }
