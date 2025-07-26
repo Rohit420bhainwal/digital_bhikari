@@ -352,7 +352,7 @@ class AskBheekController extends GetxController {
       messageController.clear();
       selectedImage.value = null;
 
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(milliseconds: 200));
       _showAd();
 
     } catch (e) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -10,11 +12,19 @@ import '../downtime/downtime_screen.dart';
 
 class SplashController extends GetxController {
   InterstitialAd? _interstitialAd;
-
+  final Completer<void> _adLoadCompleter = Completer<void>();
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
     _loadAd();
+    await Future.delayed(const Duration(seconds: 2));
+   // _handleSplashLogic();
+    _startSplashLogic();
+  }
+
+  Future<void> _startSplashLogic() async {
+    await Future.delayed(const Duration(seconds: 2));
+    await _adLoadCompleter.future; // Wait until ad is loaded or failed
     _handleSplashLogic();
   }
 
@@ -42,8 +52,11 @@ class SplashController extends GetxController {
 
     // Show ad if loaded
     if (_interstitialAd != null) {
+      print("_interstitialAd is not null");
       _interstitialAd!.show();
       await Future.delayed(const Duration(seconds: 2));
+    }else{
+      print("_interstitialAd is null");
     }
 
     // Navigate to next screen
@@ -60,11 +73,28 @@ class SplashController extends GetxController {
       adUnitId: 'ca-app-pub-5357447465713123/4529461813',
       request: AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _adLoadCompleter.complete();
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+          _adLoadCompleter.complete();
+        },
+      ),
+    );
+  }
+
+/*  void _loadAd() {
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-5357447465713123/4529461813',
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) => _interstitialAd = ad,
         onAdFailedToLoad: (error) => _interstitialAd = null,
       ),
     );
-  }
+  }*/
 
   @override
   void onClose() {
