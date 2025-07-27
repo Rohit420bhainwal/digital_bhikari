@@ -64,6 +64,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
+import '../downtime/downtime_screen.dart';
+
 class AuthController extends GetxController {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final box = GetStorage();
@@ -95,6 +97,10 @@ class AuthController extends GetxController {
 
   Future<void> signInWithGoogle() async {
     try {
+      // Fetch config
+      final versionDoc = await FirebaseFirestore.instance.collection('app_config').doc('version').get();
+      final data = versionDoc.data() ?? {};
+
       final account = await _googleSignIn.signIn();
       if (account != null) {
         final deviceId = await _getDeviceId();
@@ -123,6 +129,16 @@ class AuthController extends GetxController {
           'currentDeviceId': deviceId,
         }, SetOptions(merge: true));
 
+        // Downtime check
+        if (data['downtime'] == true) {
+          // Show downtime screen and ad
+          Get.offAll(() => DowntimeScreen(
+            message: data['downtime_message'] ?? "We are under maintenance. Please try again later.",
+            title:data['downtime_title']??"Downtime"
+            /*ad: _interstitialAd,*/
+          ));
+          return;
+        }
         Get.offAllNamed('/base');
       }
     } catch (e) {

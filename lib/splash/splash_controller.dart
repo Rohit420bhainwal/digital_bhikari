@@ -17,7 +17,6 @@ class SplashController extends GetxController {
   void onInit() async {
     super.onInit();
     _loadAd();
-    await Future.delayed(const Duration(seconds: 2));
    // _handleSplashLogic();
     _startSplashLogic();
   }
@@ -36,15 +35,6 @@ class SplashController extends GetxController {
     final versionDoc = await FirebaseFirestore.instance.collection('app_config').doc('version').get();
     final data = versionDoc.data() ?? {};
 
-    // Downtime check
-    if (data['downtime'] == true) {
-      // Show downtime screen and ad
-      Get.offAll(() => DowntimeScreen(
-        message: data['downtime_message'] ?? "We are under maintenance. Please try again later.",
-        ad: _interstitialAd,
-      ));
-      return;
-    }
 
     // Version check as before
     final shouldProceed = await checkAppVersion(Get.context!);
@@ -62,6 +52,16 @@ class SplashController extends GetxController {
     // Navigate to next screen
     final auth = Get.find<AuthController>();
     if (auth.isLoggedIn.value) {
+      // Downtime check
+      if (data['downtime'] == true) {
+        // Show downtime screen and ad
+        Get.offAll(() => DowntimeScreen(
+          message: data['downtime_message'] ?? "We are under maintenance. Please try again later.",
+         title: data['downtime_title']??"Downtime",
+         /* ad: _interstitialAd,*/
+        ));
+        return;
+      }
       Get.offAllNamed('/base');
     } else {
       Get.offAllNamed('/login');

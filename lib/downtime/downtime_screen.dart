@@ -4,8 +4,9 @@ import 'dart:io';
 
 class DowntimeScreen extends StatefulWidget {
   final String message;
-  final InterstitialAd? ad;
-  const DowntimeScreen({Key? key, required this.message, this.ad}) : super(key: key);
+  final String title;
+ /* final InterstitialAd? ad;*/
+  const DowntimeScreen({Key? key, required this.message/*, this.ad*/, required this.title}) : super(key: key);
 
   @override
   State<DowntimeScreen> createState() => _DowntimeScreenState();
@@ -16,9 +17,9 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
   void initState() {
     super.initState();
     // Show ad if available
-    if (widget.ad != null) {
+   /* if (widget.ad != null) {
       widget.ad!.show();
-    }
+    }*/
   }
 
   Future<bool> _onWillPop() async {
