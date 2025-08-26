@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../auth/auth_controller.dart';
 import '../utils/bheek_messages.dart';
+import '../utils/interstitialad_manager.dart';
 
 class AskBheekController extends GetxController {
   final messageController = TextEditingController();
@@ -23,7 +24,7 @@ class AskBheekController extends GetxController {
   final Color primaryColor = const Color(0xFF1976D2);
   final Color accentColor = const Color(0xFFFFC107);
   var isSubmitting = false.obs;
-
+  late InterstitialAdManager adManager;
   static final List<String> staticFunnyMessages = [
     "Bhai, lunch ke liye ₹50 bhej de, bhookh lagi hai!",
     "UPI bhej, chai peene jana hai!",
@@ -94,9 +95,10 @@ class AskBheekController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    adManager = InterstitialAdManager(adUnitId: 'ca-app-pub-5357447465713123/4529461813');
     _loadUpiId();
     fetchFunnyMessages();
-    _loadAd();
+    //_loadAd();
   }
 
   Future<void> fetchFunnyMessages() async {
@@ -195,85 +197,6 @@ class AskBheekController extends GetxController {
   }
 
 
-
-  /*void askBheek() async {
-    if (isSubmitting.value) return; // Avoid double tap
-    isSubmitting.value = true;
-
-    final message = messageController.text.trim();
-    if (message.isEmpty) {
-      Get.snackbar('Error', 'Please enter a message');
-      return;
-    }
-    final auth = Get.find<AuthController>();
-    final upiId = upiIdController.text.trim();
-
-    // --- Restriction: Only 3 requests per week ---
-    final now = DateTime.now();
-    final oneWeekAgo = now.subtract(Duration(days: 7));
-    final userFeeds = await FirebaseFirestore.instance
-        .collection('feeds')
-        .where('email', isEqualTo: auth.userEmail.value)
-        .where('createdAt', isGreaterThan: Timestamp.fromDate(oneWeekAgo))
-        .get();
-
-    if (userFeeds.docs.length >= 3) {
-      Get.defaultDialog(
-        title: 'Limit Reached!',
-        titleStyle: TextStyle(
-          color: Colors.red.shade700,
-          fontWeight: FontWeight.bold,
-          fontSize: 22,
-        ),
-        content: Column(
-          children: [
-            Icon(Icons.lock_clock, color: Colors.red.shade400, size: 48),
-            SizedBox(height: 16),
-            Text(
-              'You can only create 3 Bheek requests per week.\n\nTry again next week!',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey[800]),
-            ),
-          ],
-        ),
-        confirm: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade700,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-          child: Text('OK', style: TextStyle(color: Colors.white)),
-          onPressed: () => Get.back(),
-        ),
-        radius: 16,
-      );
-      return;
-    }
-    // --- End Restriction ---
-
-    String? uploadedImageUrl;
-    if (selectedImage.value != null) {
-      uploadedImageUrl = await uploadImageToCloudinary(selectedImage.value!);
-      if (uploadedImageUrl == null) {
-        Get.snackbar('Error', 'Image upload failed. Please try again.');
-        return;
-      }
-    }
-
-    await FirebaseFirestore.instance.collection('feeds').add({
-      'name': auth.userName.value,
-      'email': auth.userEmail.value,
-      'upi': upiId,
-      'message': message,
-      'imageUrl': uploadedImageUrl ?? '',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-    _showAskBheekSuccess(message);
-    messageController.clear();
-    selectedImage.value = null;
-    await Future.delayed(Duration(seconds: 1));
-    _showAd();
-  }*/
-
   void askBheek() async {
     if (isSubmitting.value) return; // Prevent multiple submissions
     isSubmitting.value = true;
@@ -353,7 +276,8 @@ class AskBheekController extends GetxController {
       selectedImage.value = null;
 
       await Future.delayed(const Duration(milliseconds: 200));
-      _showAd();
+      adManager.showAd();
+     // _showAd();
 
     } catch (e) {
       Get.snackbar('Error', 'Something went wrong: $e');
@@ -414,9 +338,13 @@ class AskBheekController extends GetxController {
     );
   }
 
+  @override
+  void dispose() {
+    adManager.dispose();
+    super.dispose();
+  }
 
-
-  void _loadAd() {
+ /* void _loadAd() {
     InterstitialAd.load(
       adUnitId: 'ca-app-pub-5357447465713123/4529461813', // Replace with your actual Ad Unit ID
       request: const AdRequest(),
@@ -431,18 +359,18 @@ class AskBheekController extends GetxController {
         },
       ),
     );
-  }
+  }*/
 
   void _showAd() {
     if (_interstitialAd != null) {
       _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
-          _loadAd(); // Preload next ad
+         // _loadAd(); // Preload next ad
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
-          _loadAd(); // Try loading again
+         // _loadAd(); // Try loading again
         },
       );
       _interstitialAd!.show();

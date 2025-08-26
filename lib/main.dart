@@ -14,6 +14,7 @@ import 'splash/splash_screen.dart';
 import 'base/base_screen.dart';
 import 'auth/google_signin_page.dart';
 import 'auth/auth_controller.dart';
+import 'onboarding/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,6 +101,7 @@ class MyApp extends StatelessWidget {
       getPages: [
         GetPage(name: '/', page: () => SplashScreen()),
         GetPage(name: '/login', page: () => GoogleSignInPage()),
+        GetPage(name: '/onboarding', page: () => OnboardingScreen()),
         GetPage(name: '/base', page: () => BaseScreen()),
         GetPage(name: '/notifications', page: () => const NotificationScreen()),
         GetPage(name: '/notification_detail', page: () => const NotificationDetailScreen()),

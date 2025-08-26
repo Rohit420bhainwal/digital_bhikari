@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../auth/auth_controller.dart';
@@ -9,56 +10,72 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../downtime/downtime_screen.dart';
+import '../utils/interstitialad_manager.dart';
 
 class SplashController extends GetxController {
   InterstitialAd? _interstitialAd;
   final Completer<void> _adLoadCompleter = Completer<void>();
+  late InterstitialAdManager adManager;
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    _loadAd();
-   // _handleSplashLogic();
+    adManager = InterstitialAdManager(adUnitId: 'ca-app-pub-5357447465713123/4529461813');
+
     _startSplashLogic();
   }
 
+
+  @override
+  void dispose() {
+    adManager.dispose();
+    super.dispose();
+  }
   Future<void> _startSplashLogic() async {
     await Future.delayed(const Duration(seconds: 2));
-    await _adLoadCompleter.future; // Wait until ad is loaded or failed
-    _handleSplashLogic();
+    await _handleSplashLogic();
   }
 
   Future<void> _handleSplashLogic() async {
-    // Wait for splash animation or minimum time
     await Future.delayed(const Duration(seconds: 2));
 
-    // Fetch config
     final versionDoc = await FirebaseFirestore.instance.collection('app_config').doc('version').get();
     final data = versionDoc.data() ?? {};
 
-
-    // Version check as before
     final shouldProceed = await checkAppVersion(Get.context!);
     if (!shouldProceed) return;
 
-    // Show ad if loaded
-    if (_interstitialAd != null) {
-      print("_interstitialAd is not null");
-      _interstitialAd!.show();
-      await Future.delayed(const Duration(seconds: 2));
-    }else{
-      print("_interstitialAd is null");
-    }
+    // ✅ Load ad fresh just before showing
+   // await _loadAd();
+    adManager.showAd();
 
-    // Navigate to next screen
+/*
+    if (_interstitialAd != null) {
+      print("InterstitialAd is not null. Showing ad...");
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          print("Ad dismissed. Disposing...");
+          ad.dispose();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          print("Ad failed to show: $error");
+          ad.dispose();
+        },
+      );
+
+      _interstitialAd!.show();
+      _interstitialAd = null;
+      await Future.delayed(const Duration(seconds: 2));
+    } else {
+      print("InterstitialAd is null. Skipping ad.");
+    }
+*/
+
     final auth = Get.find<AuthController>();
     if (auth.isLoggedIn.value) {
-      // Downtime check
       if (data['downtime'] == true) {
-        // Show downtime screen and ad
         Get.offAll(() => DowntimeScreen(
           message: data['downtime_message'] ?? "We are under maintenance. Please try again later.",
-         title: data['downtime_title']??"Downtime",
-         /* ad: _interstitialAd,*/
+          title: data['downtime_title'] ?? "Downtime",
         ));
         return;
       }
@@ -67,34 +84,45 @@ class SplashController extends GetxController {
       Get.offAllNamed('/login');
     }
   }
+  /// ✅ Load ad fresh before use
+  Future<void> _loadAd() async {
+    final completer = Completer<void>();
 
-  void _loadAd() {
     InterstitialAd.load(
       adUnitId: 'ca-app-pub-5357447465713123/4529461813',
       request: AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitialAd = ad;
-          _adLoadCompleter.complete();
+          Fluttertoast.showToast(
+            msg: "Interstitial Ad loaded!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          completer.complete();
         },
         onAdFailedToLoad: (error) {
           _interstitialAd = null;
-          _adLoadCompleter.complete();
+          Fluttertoast.showToast(
+            msg: "Ad failed to load!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          print("InterstitialAd failed to load: $error");
+          completer.complete();
         },
       ),
     );
+
+    return completer.future;
   }
 
-/*  void _loadAd() {
-    InterstitialAd.load(
-      adUnitId: 'ca-app-pub-5357447465713123/4529461813',
-      request: AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitialAd = ad,
-        onAdFailedToLoad: (error) => _interstitialAd = null,
-      ),
-    );
-  }*/
 
   @override
   void onClose() {
@@ -103,7 +131,7 @@ class SplashController extends GetxController {
   }
 }
 
-// Return true if user can proceed, false if forced update
+
 Future<bool> checkAppVersion(BuildContext context) async {
   final versionDoc = await FirebaseFirestore.instance.collection('app_config').doc('version').get();
   final data = versionDoc.data() ?? {};
