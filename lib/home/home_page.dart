@@ -62,7 +62,17 @@ class HomePage extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: 12),
+              Text(
+                "Sahi UPI ID bhar na bhidu!\n\nGalat daala toh bheek aane se pehle hi hawa ho jaayegi 💨💸",
+                style: TextStyle(
+                  fontSize: 14,
+
+                  fontWeight: FontWeight.w900,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 24),
 
               // UPI Section
               Card(
