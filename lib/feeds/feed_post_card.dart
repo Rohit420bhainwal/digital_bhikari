@@ -1,12 +1,16 @@
 import 'dart:math';
 
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../home/ask_bheek_controller.dart';
 import 'feed_post_controller.dart';
 import 'comments_sheet.dart';
@@ -82,16 +86,198 @@ class _FeedPostCardState extends State<FeedPostCard> {
     super.dispose();
   }
 
+  Future<void> _launchUPI({required String upiId, required String receiverName, required int amount, required String feedOwnerEmail}) async {
+    var note = "Bheek Donation";
+    final Uri uri = Uri.parse(
+        "upi://pay?pa=$upiId&am=$amount&tn=$note&cu=INR"
+    );
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      debugPrint("❌ Could not launch UPI app");
+    }
+  }
+
+  void _showUpiQrPopup(BuildContext context, {required String upiId, required String receiverName, required int amount, required String feedOwnerEmail}) {
+   // const upiId = "vishalmishra.46666@oksbi";  // payee address (required)
+    const name = "Digital Bhikari";            // payee name (required, can be dummy but must exist)
+  //  const amount = "1";                        // ₹1
+    const note = "Bheek Donation";
+  //  final tid = DateTime.now().millisecondsSinceEpoch.toString();
+  //  final tr  = "TID$tid";
+    final qrData =
+        "upi://pay?pa=$upiId&pn=$receiverName&am=$amount&cu=INR&tn=$note";
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text("Pay via UPI"),
+          content: SizedBox( // 👈 Fix by constraining content
+            width: 250,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                size: 200.0,
+              ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Scan this QR in Google Pay, PhonePe, or Paytm",
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: upiId));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("UPI ID copied to clipboard"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.copy, size: 18),
+                    label: const Text("Copy UPI ID"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+/*
+  void _showUpiQrPopup(BuildContext context) {
+    const upiId = "vishalmishra.46666@oksbi";  // payee address (required)
+    const name = "Digital Bhikari";            // payee name (required, can be dummy but must exist)
+    const amount = "1";                        // ₹1
+    const note = "Bheek Donation";
+    final tid = DateTime.now().millisecondsSinceEpoch.toString();
+    final tr  = "TID$tid";
+    final qrData =
+        "upi://pay?pa=$upiId&pn=$name&am=$amount&cu=INR&tn=$note";
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Pay via UPI"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                size: 200.0,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Scan this QR in Google Pay, PhonePe or Paytm",
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }*/
+
+  Future<void> _openGPay() async {
+    const upiId = "vishalmishra.46666@oksbi";  // payee address (required)
+    const name = "Digital Bhikari";            // payee name (required, can be dummy but must exist)
+    const amount = "1";                        // ₹1
+    const note = "Bheek Donation";
+    final tid = DateTime.now().millisecondsSinceEpoch.toString();
+    final tr  = "TID$tid";
+    final uri = Uri.parse(
+        "upi://pay?"
+            "pa=$upiId&"
+            "pn=$name&"
+            "tid=$tid&"
+            "tr=$tr&"
+            "tn=$note&"
+            "am=$amount&"
+            "cu=INR"
+    );
+/*    final uri = Uri.parse(
+        "upi://pay?pa=$upiId&pn=$name&mc=0000&tid=1234567890&tr=9876543210&tn=$note&am=$amount&cu=INR&url=https://example.com"
+    );*/
+
+    final intent = AndroidIntent(
+      action: 'action_view',
+      data: uri.toString(),
+      /*package: "com.google.android.apps.nbu.paisa.user",*/ // force GPay
+      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+    );
+
+    await intent.launch();
+  }
+
+
+  /*Future<void> _openGPay() async {
+    var upiId = "vishalmishra.46666@oksbi";
+    var name = "Digital Bhikari";
+    var amount = "1";
+    var note = "Bheek Donation";
+
+    final Uri uri = Uri.parse(
+        "upi://pay?pa=$upiId&pn=$name&am=$amount&tn=$note&cu=INR"
+    );
+
+    // Google Pay package name
+    final String gpayPackage = "com.google.android.apps.nbu.paisa.user";
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+        webViewConfiguration: const WebViewConfiguration(
+          enableJavaScript: false,
+        ),
+      );
+    } else {
+      debugPrint("❌ Google Pay not installed");
+    }
+  }*/
+
   Future<void> startUpiPayment({
     required String upiId,
     required String receiverName,
     required int amount,
     required String feedOwnerEmail,
   }) async {
+    //rzp_test_icz3AXfa29RYVn
+    //rzp_live_fGDgvClpeVJsa4
+    print("receiverName: $receiverName");
+    print("upiId: $upiId");
     var options = {
-      'key': 'rzp_test_icz3AXfa29RYVn', // Replace with your Razorpay key
+      'key': 'rzp_live_fGDgvClpeVJsa4', // Replace with your Razorpay key
       'amount': amount * 100, // Amount in paise
-      'name': receiverName,
+      'name': "vishal mishra",
       'description': 'Bheek Donation',
       'method': {
         'upi': true,
@@ -110,6 +296,7 @@ class _FeedPostCardState extends State<FeedPostCard> {
 
     try {
       print('Starting UPI payment for $feedOwnerEmail');
+      print("options: ${options}");
       _razorpay!.open(options);
       _pendingDonation = _PendingDonation(feedOwnerEmail, amount);
     } catch (e) {
@@ -375,15 +562,24 @@ class _FeedPostCardState extends State<FeedPostCard> {
                       );
 
                       if (entered != null && entered > 0) {
-                        print(
-                            'Calling startUpiPayment with feedOwnerEmail: ${widget.toUserId}');
-                        await startUpiPayment(
+                        print('Calling startUpiPayment with feedOwnerEmail: ${widget.toUserId}');
+                        /*await _launchUPI(upiId: widget.upi,
+                            receiverName: widget.name,
+                            amount: entered,
+                            feedOwnerEmail: widget.toUserId);*/
+                        _showUpiQrPopup(context,upiId: widget.upi,
+                          receiverName: widget.name,
+                          amount: entered,
+                          feedOwnerEmail: widget
+                              .toUserId,);
+                        //await _openGPay();
+                        /*await startUpiPayment(
                           upiId: widget.upi,
                           receiverName: widget.name,
                           amount: entered,
                           feedOwnerEmail: widget
                               .toUserId, // This must be the receiver's email!
-                        );
+                        );*/
                       }
                     },
                     style: ElevatedButton.styleFrom(

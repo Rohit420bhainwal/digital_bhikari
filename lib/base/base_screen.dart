@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:digital_bhikari/notification/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../feeds/feeds_page.dart';
 import '../home/home_page.dart';
 import '../leaderboard/leaderboard_page.dart';
@@ -15,8 +16,8 @@ class BaseScreen extends StatelessWidget {
   final List<Widget> pages = [
     HomePage(),
     FeedsPage(),
-    LeaderboardPage(),
-    TransactionPage(),
+/*    LeaderboardPage(),
+    TransactionPage(),*/
   ];
 
   @override
@@ -99,6 +100,30 @@ class BaseScreen extends StatelessWidget {
                 authController.signOut(); // <-- Use signOut from AuthController
               },
             ),
+            // --- Add this block for version info ---
+            // --- Add this block for version info ---
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return SizedBox.shrink();
+                final info = snapshot.data!;
+                return Padding(
+                  padding: const EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0), // 👈 added left padding
+                  child: Align(
+                    alignment: Alignment.centerLeft, // 👈 force text to left
+                    child: Text(
+                      'v${info.version} (${info.buildNumber})',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
             SizedBox(height: 16),
           ],
         ),
@@ -110,8 +135,8 @@ class BaseScreen extends StatelessWidget {
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.feed), label: 'Feeds'),
-          BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: 'Leaderboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Transactions'),
+       //   BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: 'Leaderboard'),
+       //   BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Transactions'),
         ],
       ),
     ));
